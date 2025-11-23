@@ -210,16 +210,22 @@ func (c *Client) attach(ctx context.Context, session string) error {
 
 func (c *Client) attachSession(ctx context.Context, session string) error {
 	cmd := c.run(ctx, c.bin, "attach-session", "-t", session)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return wrapTmuxErr("attach-session", err, out)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	if err := cmd.Run(); err != nil {
+		return wrapTmuxErr("attach-session", err, nil)
 	}
 	return nil
 }
 
 func (c *Client) switchClient(ctx context.Context, session string) error {
 	cmd := c.run(ctx, c.bin, "switch-client", "-t", session)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return wrapTmuxErr("switch-client", err, out)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	if err := cmd.Run(); err != nil {
+		return wrapTmuxErr("switch-client", err, nil)
 	}
 	return nil
 }
