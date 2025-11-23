@@ -113,7 +113,7 @@ func (c *Client) sessionExists(ctx context.Context, session string) (bool, error
 		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 1 {
 			return false, nil
 		}
-		return false, fmt.Errorf("tmux has-session: %w", err)
+		return false, wrapTmuxErr("has-session", err)
 	}
 	return true, nil
 }
@@ -151,7 +151,7 @@ func (c *Client) newSession(ctx context.Context, session, startDir string) (stri
 	cmd := c.run(ctx, c.bin, args...)
 	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("tmux new-session: %w", err)
+		return "", wrapTmuxErr("new-session", err)
 	}
 	pane := strings.TrimSpace(string(out))
 	if pane == "" {
@@ -176,7 +176,7 @@ func (c *Client) splitPane(ctx context.Context, target, startDir, orientation st
 	cmd := c.run(ctx, c.bin, args...)
 	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("tmux split-window %s: %w", orientation, err)
+		return "", wrapTmuxErr(fmt.Sprintf("split-window %s", orientation), err)
 	}
 	pane := strings.TrimSpace(string(out))
 	if pane == "" {
@@ -189,21 +189,60 @@ func (c *Client) equalize(ctx context.Context, session string) error {
 	window := fmt.Sprintf("%s:0", session)
 	cmd := c.run(ctx, c.bin, "select-layout", "-t", window, "tiled")
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("tmux select-layout tiled: %w", err)
+		return wrapTmuxErr("select-layout", err)
 	}
 	return nil
 }
 
 func (c *Client) attach(ctx context.Context, session string) error {
-	var args []string
-	if os.Getenv("TMUX") == "" {
-		args = []string{"attach-session", "-t", session}
-	} else {
-		args = []string{"switch-client", "-t", session}
+	if insideTmux() {
+		return c.switchClient(ctx, session)
 	}
-	cmd := c.run(ctx, c.bin, args...)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("tmux %s: %w", args[0], err)
+	if err := c.attachSession(ctx, session); err != nil {
+		if isNestedTmuxErr(err) {
+			return c.switchClient(ctx, session)
+		}
+		return err
 	}
 	return nil
+}
+
+func (c *Client) attachSession(ctx context.Context, session string) error {
+	cmd := c.run(ctx, c.bin, "attach-session", "-t", session)
+	if err := cmd.Run(); err != nil {
+		return wrapTmuxErr("attach-session", err)
+	}
+	return nil
+}
+
+func (c *Client) switchClient(ctx context.Context, session string) error {
+	cmd := c.run(ctx, c.bin, "switch-client", "-t", session)
+	if err := cmd.Run(); err != nil {
+		return wrapTmuxErr("switch-client", err)
+	}
+	return nil
+}
+
+func insideTmux() bool {
+	if os.Getenv("TMUX") != "" || os.Getenv("TMUX_PANE") != "" {
+		return true
+	}
+	return false
+}
+
+func wrapTmuxErr(subcmd string, err error) error {
+	if exitErr, ok := err.(*exec.ExitError); ok {
+		if msg := strings.TrimSpace(string(exitErr.Stderr)); msg != "" {
+			return fmt.Errorf("tmux %s: %s", subcmd, msg)
+		}
+	}
+	return fmt.Errorf("tmux %s: %w", subcmd, err)
+}
+
+func isNestedTmuxErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "nested")
 }
