@@ -17,6 +17,7 @@ Define your tmux layouts in YAML, share them with your team via git, and get con
 - 🏠 **Global config** - Define layouts once, use everywhere
 - 🔄 **Variable expansion** - Use `${EDITOR}`, `${PROJECT_PATH}`, etc.
 - 🎯 **Zero config** - Just run `peakypanes` in any directory
+- ⚙️ **Session-scoped tmux options** - Configure tmux per-session without affecting global config
 
 ## Quick Start
 
@@ -70,6 +71,8 @@ peakypanes layouts export dev-3 > .peakypanes.yml
 ```
 
 ## Configuration
+
+> 📖 **[Layout Builder Guide](docs/layout-builder.md)** - Detailed documentation on creating custom layouts, pane arrangements, and tmux options.
 
 ### Project-Local (`.peakypanes.yml`)
 

@@ -29,9 +29,10 @@ type WindowDef struct {
 
 // LayoutSettings contains optional layout configuration.
 type LayoutSettings struct {
-	Width    int       `yaml:"width,omitempty"`
-	Height   int       `yaml:"height,omitempty"`
-	BindKeys []KeyBind `yaml:"bind_keys,omitempty"`
+	Width       int               `yaml:"width,omitempty"`
+	Height      int               `yaml:"height,omitempty"`
+	BindKeys    []KeyBind         `yaml:"bind_keys,omitempty"`
+	TmuxOptions map[string]string `yaml:"tmux_options,omitempty"` // session-scoped tmux options
 }
 
 // KeyBind defines a tmux key binding.

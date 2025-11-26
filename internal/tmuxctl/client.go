@@ -287,6 +287,10 @@ func (c *Client) createGrid(ctx context.Context, session, startDir string, grid 
 	if err != nil {
 		return err
 	}
+
+	// Set remain-on-exit as default - keeps panes open after command exits/crashes for debugging
+	_ = c.SetOption(ctx, session, "remain-on-exit", "on")
+
 	rowRoots := []string{firstPane}
 	current := firstPane
 	for i := 1; i < grid.Rows; i++ {
@@ -422,6 +426,22 @@ func isNestedTmuxErr(err error) bool {
 	}
 	msg := strings.ToLower(err.Error())
 	return strings.Contains(msg, "nested")
+}
+
+// SetOption sets a tmux option for a session. Use "-g" as session for global options.
+func (c *Client) SetOption(ctx context.Context, session, option, value string) error {
+	args := []string{"set-option"}
+	if session != "" && session != "-g" {
+		args = append(args, "-t", session)
+	} else if session == "-g" {
+		args = append(args, "-g")
+	}
+	args = append(args, option, value)
+	cmd := c.run(ctx, c.bin, args...)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return wrapTmuxErr("set-option", err, out)
+	}
+	return nil
 }
 
 // SendKeys sends keystrokes to a target pane.

@@ -12,11 +12,11 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"gopkg.in/yaml.v3"
 
 	"github.com/kregenrek/tmuxman/internal/layout"
 	"github.com/kregenrek/tmuxman/internal/tmuxctl"
+	"github.com/kregenrek/tmuxman/internal/tui/theme"
 )
 
 // ViewState represents the current UI view.
@@ -101,26 +101,13 @@ type config struct {
 	LayoutDirs []string        `yaml:"layout_dirs"`
 }
 
-// Styles
+// Styles - using centralized theme for consistency
 var (
-	appStyle = lipgloss.NewStyle().Padding(1, 2)
-
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#7D56F4")).
-			Padding(0, 1)
-
-	statusMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"})
-
-	dialogStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("210")).
-			Padding(1, 2)
-
-	dialogTitleStyle = lipgloss.NewStyle().
-				Bold(true).
-				Foreground(lipgloss.Color("210"))
+	appStyle           = theme.App
+	titleStyle         = theme.Title
+	statusMessageStyle = theme.StatusMessage
+	dialogStyle        = theme.Dialog
+	dialogTitleStyle   = theme.DialogTitle
 )
 
 // Key bindings
@@ -270,13 +257,13 @@ func (m *Model) setupList() {
 		return [][]key.Binding{{m.delegateKeys.choose, m.delegateKeys.kill}}
 	}
 
-	// Custom styles for the delegate
+	// Custom styles for the delegate - using centralized theme
 	delegate.Styles.SelectedTitle = delegate.Styles.SelectedTitle.
-		Foreground(lipgloss.Color("#FFFDF5")).
-		BorderLeftForeground(lipgloss.Color("#7D56F4"))
+		Foreground(theme.TextPrimary).
+		BorderLeftForeground(theme.Primary)
 	delegate.Styles.SelectedDesc = delegate.Styles.SelectedDesc.
-		Foreground(lipgloss.Color("#B8B8B8")).
-		BorderLeftForeground(lipgloss.Color("#7D56F4"))
+		Foreground(theme.TextSecondary).
+		BorderLeftForeground(theme.Primary)
 
 	items := m.projectsToItems()
 	l := list.New(items, delegate, 0, 0)
@@ -313,22 +300,19 @@ func (m *Model) setupProjectPicker() {
 	// Scan for git projects
 	m.scanGitProjects()
 
-	// Create delegate for project picker
+	// Create delegate for project picker - using centralized theme
 	delegate := list.NewDefaultDelegate()
 	delegate.Styles.SelectedTitle = delegate.Styles.SelectedTitle.
-		Foreground(lipgloss.Color("#FFFDF5")).
-		BorderLeftForeground(lipgloss.Color("#25A065"))
+		Foreground(theme.TextPrimary).
+		BorderLeftForeground(theme.Secondary)
 	delegate.Styles.SelectedDesc = delegate.Styles.SelectedDesc.
-		Foreground(lipgloss.Color("#B8B8B8")).
-		BorderLeftForeground(lipgloss.Color("#25A065"))
+		Foreground(theme.TextSecondary).
+		BorderLeftForeground(theme.Secondary)
 
 	items := m.gitProjectsToItems()
 	l := list.New(items, delegate, 0, 0)
 	l.Title = "📁 Open Project"
-	l.Styles.Title = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFDF5")).
-		Background(lipgloss.Color("#25A065")).
-		Padding(0, 1)
+	l.Styles.Title = theme.TitleAlt
 	l.SetShowStatusBar(true)
 	l.SetFilteringEnabled(true)
 	l.SetStatusBarItemName("project", "projects")
@@ -424,7 +408,7 @@ func (m *Model) delegateUpdate(msg tea.Msg, lm *list.Model) tea.Cmd {
 					m.confirmProject = &item
 					m.state = StateConfirmKill
 				} else {
-					return lm.NewStatusMessage(statusMessageStyle.Render("Session not running"))
+					return lm.NewStatusMessage(FormatStatusWarning("Session not running"))
 				}
 			}
 		}
@@ -596,13 +580,13 @@ func (m Model) updateHome(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case key.Matches(msg, m.keys.refresh):
 		if err := m.loadConfig(); err != nil {
-			return m, m.list.NewStatusMessage(statusMessageStyle.Render("Error: " + err.Error()))
+			return m, m.list.NewStatusMessage(FormatStatusError(err))
 		}
 		if err := m.refreshStatuses(); err != nil {
-			return m, m.list.NewStatusMessage(statusMessageStyle.Render("Error: " + err.Error()))
+			return m, m.list.NewStatusMessage(FormatStatusError(err))
 		}
 		m.list.SetItems(m.projectsToItems())
-		return m, m.list.NewStatusMessage(statusMessageStyle.Render("✓ Refreshed"))
+		return m, m.list.NewStatusMessage(FormatStatusSuccess("Refreshed"))
 
 	case key.Matches(msg, m.keys.editConfig):
 		return m, m.editConfig()
@@ -659,13 +643,13 @@ func (m Model) updateConfirmKill(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			session := m.confirmProject.Session
 			if err := m.tmux.KillSession(ctx, session); err != nil {
 				m.state = StateHome
-				return m, m.list.NewStatusMessage(statusMessageStyle.Render("Error: " + err.Error()))
+				return m, m.list.NewStatusMessage(FormatStatusError(err))
 			}
 			_ = m.refreshStatuses()
 			m.list.SetItems(m.projectsToItems())
 			m.confirmProject = nil
 			m.state = StateHome
-			return m, m.list.NewStatusMessage(statusMessageStyle.Render(fmt.Sprintf("✓ Killed session %s", session)))
+			return m, m.list.NewStatusMessage(FormatStatusSuccess(fmt.Sprintf("Killed session %s", session)))
 		}
 		m.state = StateHome
 		return m, nil
@@ -757,12 +741,9 @@ func (m Model) View() string {
 func (m Model) viewHome() string {
 	var s strings.Builder
 
-	// Logo at the top
-	logoStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFF99")).
-		Bold(true)
+	// Logo at the top - using centralized theme
 	for _, line := range Logo {
-		s.WriteString(logoStyle.Render(line))
+		s.WriteString(theme.LogoStyle.Render(line))
 		s.WriteString("\n")
 	}
 	s.WriteString("\n")
@@ -774,10 +755,8 @@ func (m Model) viewHome() string {
 }
 
 func (m Model) viewConfirmKill() string {
-	// Render list view dimmed in background
-	listView := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240")).
-		Render(m.list.View())
+	// Render list view dimmed in background - using centralized theme
+	listView := theme.ListDimmed.Render(m.list.View())
 
 	// Dialog content
 	var dialogContent strings.Builder
@@ -786,26 +765,21 @@ func (m Model) viewConfirmKill() string {
 	dialogContent.WriteString("\n\n")
 
 	if m.confirmProject != nil {
-		labelStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
-		valueStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("252"))
-
-		dialogContent.WriteString(labelStyle.Render("Session: "))
-		dialogContent.WriteString(valueStyle.Render(m.confirmProject.Session))
+		dialogContent.WriteString(theme.DialogLabel.Render("Session: "))
+		dialogContent.WriteString(theme.DialogValue.Render(m.confirmProject.Session))
 		dialogContent.WriteString("\n")
-		dialogContent.WriteString(labelStyle.Render("Project: "))
-		dialogContent.WriteString(valueStyle.Render(m.confirmProject.Name))
+		dialogContent.WriteString(theme.DialogLabel.Render("Project: "))
+		dialogContent.WriteString(theme.DialogValue.Render(m.confirmProject.Name))
 		dialogContent.WriteString("\n\n")
 	}
 
-	noteStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("244")).Italic(true)
-	dialogContent.WriteString(noteStyle.Render("Kill the session: Notice this won't delete your project"))
+	dialogContent.WriteString(theme.DialogNote.Render("Kill the session: Notice this won't delete your project"))
 	dialogContent.WriteString("\n\n")
 
-	choiceStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("114"))
-	dialogContent.WriteString(choiceStyle.Render("y"))
-	dialogContent.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("244")).Render(" confirm • "))
-	dialogContent.WriteString(choiceStyle.Render("n"))
-	dialogContent.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("244")).Render(" cancel"))
+	dialogContent.WriteString(theme.DialogChoiceKey.Render("y"))
+	dialogContent.WriteString(theme.DialogChoiceSep.Render(" confirm • "))
+	dialogContent.WriteString(theme.DialogChoiceKey.Render("n"))
+	dialogContent.WriteString(theme.DialogChoiceSep.Render(" cancel"))
 
 	dialog := dialogStyle.Render(dialogContent.String())
 

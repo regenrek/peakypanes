@@ -720,6 +720,15 @@ func createSessionWithLayout(ctx context.Context, client *tmuxctl.Client, sessio
 		return fmt.Errorf("create session: %w", err)
 	}
 
+	// Apply peakypanes default tmux options (session-scoped, not global)
+	// remain-on-exit: keeps panes open after command exits/crashes for debugging
+	_ = client.SetOption(ctx, session, "remain-on-exit", "on")
+
+	// Apply custom tmux options from layout config
+	for option, value := range layoutCfg.Settings.TmuxOptions {
+		_ = client.SetOption(ctx, session, option, value)
+	}
+
 	// Set title for first pane
 	if len(firstWindow.Panes) > 0 && firstWindow.Panes[0].Title != "" {
 		_ = client.SelectPane(ctx, firstPaneID, firstWindow.Panes[0].Title)
