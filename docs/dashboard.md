@@ -158,7 +158,6 @@ Add a notify command in your Codex config to call the peky hook script (Codex pa
 notify = ["python3", "/absolute/path/to/peky/scripts/agent-state/codex-notify.py"]
 ```
 
-Tip: with npm i -g peky, the scripts live under $(npm root -g)/peky/scripts/agent-state/.
 Note: Codex notify only fires on turn completion, so running state still relies on regex or idle detection between turns.
 
 Claude Code (TUI)

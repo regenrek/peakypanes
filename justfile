@@ -6,9 +6,9 @@ init:
 build:
   @bash -cu 'set -euo pipefail; go install ./cmd/peky'
 
-# Uninstall the dev version of peky (removes the Go-installed binary)
-# Also stops the daemon and removes all peky data for a fresh start
-# This allows the npm global version to take precedence
+# Uninstall the dev version of peky (removes the Go-installed binary).
+# Also stops the daemon and removes all peky data for a fresh start.
+# This allows the Homebrew/global version to take precedence.
 uninstall-dev:
   @echo "Uninstalling dev peky from Go bin..."
   @gobin="${GOBIN:-$(go env GOPATH)/bin}"; peky="$gobin/peky"; \
@@ -62,7 +62,7 @@ uninstall-dev:
       echo "No data directories found"; \
     fi; \
     echo ""; \
-    echo "The npm global version is now at:"; \
+    echo "The Homebrew/global version is now at:"; \
     echo "  /opt/homebrew/bin/peky"; \
     echo ""; \
     echo "To use it immediately, run:"; \

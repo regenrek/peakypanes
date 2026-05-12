@@ -13,13 +13,6 @@ Race tests:
 go test ./... -race
 ```
 
-Manual npm smoke run (fresh HOME/XDG config):
-
-```bash
-scripts/fresh-run
-scripts/fresh-run X.Y.Z --with-project
-```
-
 CLI smoke run (builds `./bin/peky`, starts daemon, runs core commands):
 
 ```bash
@@ -75,14 +68,7 @@ See `docs/performance.md` for `scripts/perf-profiler` and `scripts/perf-bench`.
 # Write/refresh: testdata/performance-tests/perf-summary-YYYYMMDD.md
 ```
 
-5) **Fresh config smoke**
-
-```bash
-scripts/fresh-run
-scripts/fresh-run X.Y.Z --with-project
-```
-
-6) **Verify dev-only flags are gated**
+5) **Verify dev-only flags are gated**
 
 - Profiling hooks must be behind build tags or env gates.
 - No profiler endpoints enabled by default.

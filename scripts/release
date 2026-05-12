@@ -9,7 +9,7 @@ Runs the full release flow:
 - validates repo state
 - runs tests (always)
 - tags and pushes
-- triggers the GitHub Actions release workflow (GoReleaser + Homebrew tap update + npm publish)
+- triggers the GitHub Actions release workflow (GoReleaser + Homebrew tap update)
 USAGE
 }
 
@@ -97,4 +97,4 @@ run git tag "$tag"
 run git push origin HEAD --tags
 
 printf "Release triggered: %s\n" "$tag"
-printf "Monitor GitHub Actions: workflow 'release' (GoReleaser + Homebrew tap update), then 'npm Release'.\n"
+printf "Monitor GitHub Actions: workflow 'release' (GoReleaser + Homebrew tap update).\n"
