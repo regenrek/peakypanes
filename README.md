@@ -70,11 +70,11 @@ git add .peakypanes.yml  # Share with team
 
 | Layout | Description |
 |--------|-------------|
-| `simple` | Single window with one shell pane |
-| `dev-2` | Editor and terminal |
-| `dev-3` | Large editor pane with server and shell panes (default) |
-| `fullstack` | Editor, dev server, and logs window |
-| `go-dev` | Editor, run, tests, and a git window |
+| `simple` | Single window with one pane |
+| `dev-2` | Simple two-pane layout: editor left, terminal right |
+| `dev-3` | Three-pane layout: editor and two additional panes (default) |
+| `fullstack` | Fullstack development: editor, dev server, and logs |
+| `go-dev` | Go development: editor, run, and tests |
 | `split-h` | Two horizontal panes (top/bottom) |
 | `split-v` | Two vertical panes (left/right) |
 
@@ -86,7 +86,7 @@ an example of a custom layout.
 peakypanes layouts
 
 # Export a layout to customize
-peakypanes layouts export dev-3 > .peakypanes.yml
+peakypanes layouts export dev-3
 ```
 
 ## Configuration
@@ -99,18 +99,16 @@ Create in your project root for team-shared layouts:
 
 ```yaml
 # .peakypanes.yml
-session: my-project
-
 layout:
   windows:
     - name: dev
       panes:
         - title: editor
           cmd: "${EDITOR:-}"
-          size: "60%"
         - title: server
           cmd: "npm run dev"
           split: horizontal
+          size: "40%"
         - title: shell
           cmd: ""
           split: vertical
@@ -120,6 +118,9 @@ layout:
         - title: docker
           cmd: "docker compose logs -f"
 ```
+
+The session name defaults to the project directory name; use `start --session`
+to override it.
 
 ### Global Config (`~/.config/peakypanes/config.yml`)
 
@@ -158,7 +159,7 @@ Use variables in your layouts:
 
 | Variable | Description |
 |----------|-------------|
-| `${PROJECT_PATH}` | Absolute path to project |
+| `${PROJECT_PATH}` | Project path used by `start` |
 | `${PROJECT_NAME}` | Directory name |
 | `${EDITOR}` | Your $EDITOR |
 | `${VAR:-default}` | Env var with default |
@@ -213,7 +214,7 @@ when the name is selected explicitly or as the default.
 1. Run `peakypanes init --local` in your project
 2. Customize `.peakypanes.yml` for your stack
 3. Commit to git
-4. Teammates install peakypanes and run `peakypanes` - done!
+4. Teammates install peakypanes and run `peakypanes start` - done!
 
 ## License
 

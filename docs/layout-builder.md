@@ -19,9 +19,7 @@ This guide covers everything you need to know about creating custom layouts in P
 A `.peakypanes.yml` file has this structure:
 
 ```yaml
-# Optional: Custom session name (defaults to directory name)
-session: my-project
-
+# Session names default to the project directory; use start --session to override.
 layout:
   name: my-layout
   description: "Description of what this layout is for"
@@ -113,10 +111,10 @@ windows:
     panes:
       - title: editor        # First pane (no split)
         cmd: "${EDITOR:-}"
-        size: "60%"
       - title: server        # Splits horizontally from editor
         cmd: "npm run dev"
         split: horizontal
+        size: "40%"
       - title: shell         # Splits vertically from server
         cmd: ""
         split: vertical
@@ -133,17 +131,18 @@ This creates:
 
 ### Size Control
 
-Use `size` to control pane proportions:
+Use `size` on a pane that is being split to pass its percentage to tmux. The
+first pane is created before any split, so a `size` value on the first pane is
+ignored.
 
 ```yaml
 panes:
   - title: main
     cmd: ""
-    size: "70%"           # Takes 70% of space
   - title: side
     cmd: ""
     split: horizontal
-    size: "30%"           # Remaining 30%
+    size: "30%"           # New side pane gets 30% of the available space
 ```
 
 ---
@@ -199,7 +198,7 @@ runtime support is added.
 
 | Variable | Description |
 |----------|-------------|
-| `${PROJECT_PATH}` | Absolute path to the project directory |
+| `${PROJECT_PATH}` | Project path used by `start` |
 | `${PROJECT_NAME}` | Project directory name |
 
 ### Environment Variables
@@ -283,8 +282,6 @@ layout:
 ### Full-Stack Web Development
 
 ```yaml
-session: webapp
-
 layout:
   name: fullstack
   description: "Full-stack development with logs"
@@ -315,13 +312,12 @@ layout:
 
 ### Tauri/Rust Development (custom example)
 
-`tauri-debug` is an example name, not a built-in layout. Create it in a
-project-local file or a global layouts directory; it cannot be passed to
-`init --layout` unless you define it there first.
+`tauri-debug` is an example name, not a built-in layout. For a project-local
+`.peakypanes.yml`, keep the `layout:` wrapper below. For a standalone `.yml`
+file in the global layouts directory, remove that wrapper. The `init --layout`
+template option accepts built-in layout names only.
 
 ```yaml
-session: tauri-app
-
 layout:
   name: tauri-debug
   description: "Tauri development with codex agents"
@@ -343,8 +339,6 @@ layout:
 ### Go Development
 
 ```yaml
-session: go-project
-
 layout:
   name: go-dev
   
@@ -353,10 +347,10 @@ layout:
       panes:
         - title: editor
           cmd: "${EDITOR:-}"
-          size: "60%"
         - title: run
           cmd: ""
           split: horizontal
+          size: "40%"
         - title: test
           cmd: ""
           split: vertical
@@ -376,10 +370,10 @@ layout:
       panes:
         - title: editor
           cmd: "${EDITOR:-}"
-          size: "60%"
         - title: terminal
           cmd: ""
           split: horizontal
+          size: "40%"
 ```
 
 ---

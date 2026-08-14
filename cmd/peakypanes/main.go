@@ -43,7 +43,7 @@ Examples:
   peakypanes init                     # Create global config
   peakypanes init --local             # Create .peakypanes.yml in current dir
   peakypanes layouts                  # List available layouts
-  peakypanes layouts export dev-3     # Export layout YAML to stdout
+  peakypanes layouts export dev-3     # Print layout YAML to stdout
   peakypanes clone user/repo          # Clone from GitHub and start session
 
 Run 'peakypanes <command> --help' for more information.
@@ -81,7 +81,7 @@ Options:
 Examples:
   peakypanes layouts                  # List all layouts
   peakypanes layouts export dev-3     # Print dev-3 layout YAML
-  peakypanes layouts export dev-3 > .peakypanes.yml
+  peakypanes layouts export dev-3
 `
 
 const startHelpText = `Start or attach to a tmux session.
