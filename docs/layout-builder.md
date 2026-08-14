@@ -45,6 +45,9 @@ schema but are not currently applied or evaluated when Peaky Panes creates a
 session. Do not rely on them to resize terminals, create bindings, run setup
 commands, or conditionally disable panes.
 
+Commands in `cmd` fields are executed by tmux. Treat layout files as executable
+configuration and review them before starting an untrusted project.
+
 ---
 
 ## Pane Layouts

@@ -195,6 +195,9 @@ layout:
 | `peakypanes version` | `-v, --version` | Show the version |
 | `peakypanes help` | `-h, --help` | Show top-level help |
 
+Commands in layout `cmd` fields are executed in tmux. Review a repository's
+`.peakypanes.yml` before running `start` or `clone` on untrusted code.
+
 The `start`, `kill`, `init`, and `layouts` commands expose `-h` and `--help`.
 A non-flag argument in `start` is also accepted as a layout-name shortcut, for
 example `peakypanes dev-3`. The `init --layout` option applies only to
