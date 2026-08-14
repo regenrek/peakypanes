@@ -74,7 +74,7 @@ git add .peakypanes.yml  # Share with team
 | `dev-2` | Simple two-pane layout: editor left, terminal right |
 | `dev-3` | Three-pane layout: editor and two additional panes (default) |
 | `fullstack` | Fullstack development: editor, dev server, and logs |
-| `go-dev` | Go development: editor, run, and tests |
+| `go-dev` | Go development: editor, run, tests, and a git window |
 | `split-h` | Two horizontal panes (top/bottom) |
 | `split-v` | Two vertical panes (left/right) |
 

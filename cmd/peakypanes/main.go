@@ -492,10 +492,10 @@ func exportLayout(name string) {
 		fatal("layout %q not found", name)
 	}
 
-	// Add header comment for project-local use
+	// Add header comments for reuse as a standalone or project-local layout
 	fmt.Printf("# Peaky Panes Layout: %s\n", name)
-	fmt.Printf("# Save as .peakypanes.yml in your project root\n")
-	fmt.Printf("# session: your-session-name  # uncomment to set session name\n\n")
+	fmt.Printf("# Standalone layout YAML for ~/.config/peakypanes/layouts/\n")
+	fmt.Printf("# For .peakypanes.yml, nest this content under the layout: key\n\n")
 	fmt.Print(yaml)
 }
 
