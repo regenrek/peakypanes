@@ -1,6 +1,7 @@
 # Layout Builder Guide
 
-This guide covers everything you need to know about creating custom layouts in peky, including pane arrangements and advanced configuration.
+This guide covers the layout YAML used by peky. Layouts can use ordered pane
+splits or exact rectangular grids, plus optional command and input automation.
 
 ## Table of Contents
 
@@ -8,6 +9,7 @@ This guide covers everything you need to know about creating custom layouts in p
 - [Pane Layouts](#pane-layouts)
 - [Split Directions](#split-directions)
 - [Variables](#variables)
+- [Automation Sends](#automation-sends)
 - [Examples](#examples)
 - [Configuration Precedence](#configuration-precedence)
 - [Tips](#tips)
@@ -16,10 +18,10 @@ This guide covers everything you need to know about creating custom layouts in p
 
 ## Basic Structure
 
-A `.peky.yml` file has this structure:
+A project-local `.peky.yml` normally wraps the layout in `layout:`:
 
 ```yaml
-# Optional: Custom session name (defaults to directory name)
+# Optional: defaults to a sanitized project directory name
 session: my-project
 
 layout:
@@ -27,313 +29,239 @@ layout:
   description: "Description of what this layout is for"
 
   vars:
-    # Custom variables
-    log_file: "${HOME}/logs/${PROJECT_NAME}.log"
-
-  settings:
-    width: 240          # Terminal width hint
-    height: 84          # Terminal height hint
+    log_file: "/tmp/peky.log"
 
   panes:
     - title: editor
       cmd: "${EDITOR:-}"
-      size: "60%"
     - title: server
       cmd: "npm run dev"
       split: horizontal
-    - title: shell
-      cmd: ""
-      split: vertical
-
-# Optional per-pane persistence override:
-# session_restore: true | false | private
 ```
+
+The standalone layout printed by `peky layouts export NAME` may also be saved
+as `.peky.yml`. The loader treats a top-level file containing `panes` or `grid`
+as the project layout. `peky start --session NAME` overrides the `session` value.
+
+`settings.width` and `settings.height` are accepted by the YAML schema but are
+not currently applied when a session starts. Do not use them to resize panes.
+Likewise, pane `setup` is parsed but not run, and pane `enabled` is parsed but
+not evaluated. Do not rely on those fields for runtime behavior.
 
 ---
 
 ## Pane Layouts
 
-### Split Layouts (Recommended)
+### Split Layouts
 
-Use `split` on panes after the first to control how the layout is divided. The first pane defines the base area; each subsequent pane splits the remaining space of that base pane, so order matters.
-
-```yaml
-panes:
-  - title: editor
-    cmd: "${EDITOR:-}"
-    size: "60%"
-  - title: server
-    cmd: "npm run dev"
-    split: horizontal
-  - title: shell
-    cmd: ""
-    split: vertical
-```
-
-### Exact Grid Example (2x2)
-
-Use `grid` when you need predictable rows/columns:
+Use `panes` for an ordered layout. The first pane is the base pane and the
+second pane can split it. The current split-tree builder does not support a
+third ordered pane; use `grid` for layouts with more than two panes.
 
 ```yaml
-grid: 2x2
-commands:
-  - "codex"
-  - "npm run dev"
-  - "tail -f app.log"
-  - ""
-titles:
-  - codex
-  - dev
-  - logs
-  - shell
+layout:
+  panes:
+    - title: editor
+      cmd: "${EDITOR:-vim}"
+    - title: server
+      cmd: "npm run dev"
+      split: horizontal
 ```
 
-You can also combine `grid` with `panes` to override per-pane settings (including automation sends):
+### Exact Grid Layouts
+
+Use `grid` when you need predictable rows and columns:
 
 ```yaml
-grid: 2x2
-panes:
-  - title: codex
-    cmd: "codex"
-    direct_send:
-      - text: "hello from pane 1"
-        send_delay_ms: 500
-  - title: dev
-    cmd: "npm run dev"
-  - title: logs
-    cmd: "tail -f app.log"
-  - title: shell
-    cmd: ""
+layout:
+  grid: 2x2
+  commands:
+    - "claude"
+    - "npm run dev"
+    - "tail -f app.log"
+    - ""
+  titles:
+    - agent
+    - dev
+    - logs
+    - shell
 ```
+
+The `commands` and `titles` arrays are row-major. A top-level `command` is used
+for every grid pane. If `commands` is shorter than the grid, its remaining
+panes use `command` when it is set, otherwise they start empty. `panes` can
+override the command and title for individual grid positions.
+
+Built-in grid layouts are `3x3` and `4x3`. The `--panes N` flag on
+`peky session start` can generate a balanced grid without a layout name; it
+cannot be combined with `--layout`.
 
 ---
 
 ## Split Directions
 
-For precise control, use `split` on individual panes:
+For split layouts, use `split` on panes after the first:
 
 | Split | Result |
 |-------|--------|
 | `horizontal` | Creates left/right panes |
 | `vertical` | Creates top/bottom panes |
 
-```yaml
-panes:
-  - title: editor        # First pane (no split)
-    cmd: "${EDITOR:-}"
-    size: "60%"
-  - title: server        # Splits horizontally from editor
-    cmd: "npm run dev"
-    split: horizontal
-  - title: shell         # Splits vertically from editor's remaining space
-    cmd: ""
-    split: vertical
-```
-
-This creates:
-```
-+------------------+----------+
-|                  |  server  |
-|     editor       +----------+
-|                  |  shell   |
-+------------------+----------+
-```
+`v` is also accepted for vertical splits. Other values use the horizontal
+split behavior.
 
 ### Size Control
 
-Use `size` to control pane proportions:
+Use `size` on a pane after the first to set the percentage of the split given to
+the new pane:
 
 ```yaml
-panes:
-  - title: main
-    cmd: ""
-    size: "70%"           # Takes 70% of space
-  - title: side
-    cmd: ""
-    split: horizontal
-    size: "30%"           # Remaining 30%
+layout:
+  panes:
+    - title: main
+      cmd: ""
+    - title: side
+      cmd: ""
+      split: horizontal
+      size: "30%"
 ```
+
+A `size` value on the first pane is ignored. Grid layouts calculate equal row
+and column sizes instead of using pane split sizes.
 
 ---
 
 ## Variables
 
-### Built-in Variables
+### Special and Environment Variables
 
 | Variable | Description |
 |----------|-------------|
-| `${PROJECT_PATH}` | Absolute path to project directory |
-| `${PROJECT_NAME}` | Directory name |
-| `${HOME}` | User's home directory |
+| `${PROJECT_PATH}` | Absolute project path used by `start` |
+| `${PROJECT_NAME}` | Project directory name |
+| `${HOME}` | The `HOME` environment variable |
+| `${VAR:-default}` | Environment variable with a fallback |
 
-### Environment Variables
-
-Use any environment variable with optional defaults:
+Use braced variables in layout values:
 
 ```yaml
-panes:
-  - title: editor
-    cmd: "${EDITOR:-vim}"      # Use $EDITOR, fall back to vim
-  - title: shell
-    cmd: "${SHELL:-/bin/bash}" # Use $SHELL, fall back to bash
+layout:
+  panes:
+    - title: editor
+      cmd: "${EDITOR:-vim}"
+    - title: logs
+      cmd: "tail -f ${PROJECT_PATH}/logs/${PROJECT_NAME}.log"
 ```
 
-### Custom Variables
-
-Define reusable variables in the `vars` section:
+Nested braced expressions are not expanded recursively. After the braced
+pass, `$HOME` and a leading `~/` are expanded as conveniences. Use direct
+expansion for special or environment variables that must be resolved:
 
 ```yaml
 layout:
   vars:
-    rust_log: "${HOME}/Library/Logs/${PROJECT_NAME}/rust.log"
-    codex_log: "${HOME}/.spezi/codex/log/app-server.log"
-
+    log_file: "/tmp/peky.log"
   panes:
-    - title: rust
-      cmd: "tail -F ${rust_log}"
-    - title: codex
-      cmd: "tail -F ${codex_log}"
+    - cmd: "tail -f ${log_file}"
+    - cmd: "${HOME}/bin/agent"
 ```
 
----
-
-## Large Layouts
-
-When you need many panes, prefer a `grid:` layout for predictable sizing.
+Custom variables are checked first, then the environment, then the `:-default`
+value. `$HOME` and a leading `~/` are expanded as additional conveniences.
+Bare `$EDITOR` is not part of the braced variable syntax; use `${EDITOR}` or a
+default expression.
 
 ---
 
 ## Automation Sends
 
-Use `broadcast_send` to send input to every pane after it starts, or `direct_send` to send input to a specific pane. Each action can specify a `send_delay_ms` (default: 750ms). If `send_delay_ms` is omitted, the send waits for the pane’s first output (up to the default delay). A trailing newline is added automatically unless you set `submit: true`, which sends Enter separately (optionally delayed via `submit_delay_ms`). When `wait_for_output: true`, the send waits for the pane’s first output and uses `send_delay_ms` as a fallback timeout.
+Use `broadcast_send` to send an input action to every pane after startup, or
+`direct_send` on a pane to target that pane. Each action accepts `text`,
+`send_delay_ms`, `wait_for_output`, `submit`, and `submit_delay_ms`.
 
 ```yaml
 layout:
   command: "claude"
   broadcast_send:
-    - text: "give me a bubble sort in typescript and rust and go"
-      send_delay_ms: 750
+    - text: "give me a status update"
       wait_for_output: true
       submit: true
-      submit_delay_ms: 250
 
   panes:
-    - title: pane-1
+    - title: first
       cmd: "claude"
       direct_send:
-        - text: "pane-specific follow-up"
+        - text: "work on the first task"
           send_delay_ms: 1000
-          wait_for_output: true
+          submit: true
 ```
+
+A trailing newline is added automatically unless `submit: true` is used;
+`submit: true` sends Enter separately. If `send_delay_ms` is omitted, the
+first output is awaited up to the default delay.
+
+`session_restore: true`, `false`, or `private` is accepted on a pane, but the
+current normal startup expansion does not preserve this per-pane override. Do
+not rely on it until that path is fixed. The global `session_restore`
+configuration controls daemon snapshot behavior separately.
 
 ---
 
 ## Examples
 
-### Full-Stack Web Development
+### Tauri/Rust Development (custom example)
+
+`tauri-debug` is an example layout name, not a built-in layout. For a
+project-local `.peky.yml`, keep the `layout:` wrapper. For a standalone layout
+file, remove that wrapper if you want the file to contain only the layout.
 
 ```yaml
-session: webapp
-
-layout:
-  name: fullstack
-  description: "Full-stack development with logs"
-
-  panes:
-    - title: editor
-      cmd: "${EDITOR:-}"
-      size: "60%"
-    - title: server
-      cmd: "npm run dev"
-      split: horizontal
-    - title: shell
-      cmd: ""
-      split: vertical
-    - title: frontend
-      cmd: "tail -f logs/frontend.log"
-      split: vertical
-    - title: backend
-      cmd: "tail -f logs/backend.log"
-      split: vertical
-```
-
-### Tauri/Rust Development
-
-```yaml
-session: tauri-app
-
 layout:
   name: tauri-debug
-  description: "Tauri development with codex agents"
-
-  vars:
-    rust_log: "${HOME}/Library/Logs/${PROJECT_NAME}/rust.log"
-    codex_log: "${HOME}/.spezi/codex/log/app-server.log"
-
-  settings:
-    width: 240
-    height: 84
-
-  panes:
-    - title: codex
-      cmd: "RUST_LOG=debug codex"
-      size: "50%"
-    - title: bun-dev
-      cmd: "bun dev:tauri"
-      split: horizontal
-    - title: codex-logs
-      cmd: "tail -F ${codex_log} | grep -Ev '\\bINFO\\b'"
-      split: vertical
-    - title: rust-logs
-      cmd: "tail -F ${rust_log}"
-      split: vertical
+  description: "Tauri development"
+  grid: 2x2
+  commands:
+    - "codex"
+    - "bun dev:tauri"
+    - "tail -F ${HOME}/Library/Logs/${PROJECT_NAME}/rust.log"
+    - ""
+  titles:
+    - codex
+    - bun-dev
+    - rust-logs
+    - shell
 ```
 
-### Go Development
-
-```yaml
-session: go-project
-
-layout:
-  name: go-dev
-
-  panes:
-    - title: editor
-      cmd: "${EDITOR:-}"
-      size: "60%"
-    - title: run
-      cmd: ""
-      split: horizontal
-    - title: test
-      cmd: ""
-      split: vertical
-    - title: lazygit
-      cmd: "lazygit"
-```
-
-### Simple 2-Pane Layout
+### Simple Two-Pane Layout
 
 ```yaml
 layout:
   panes:
     - title: editor
-      cmd: "${EDITOR:-}"
-      size: "60%"
+      cmd: "${EDITOR:-vim}"
     - title: terminal
       cmd: ""
       split: horizontal
+      size: "40%"
 ```
 
 ---
 
 ## Configuration Precedence
 
-Layouts are loaded in this order (first match wins):
+For `peky start`, `peky open`, and `peky o`, layout selection is evaluated in
+this order:
 
-1. `--layout` flag on command line
-2. `.peky.yml` in project directory
-3. Matching project in `~/.config/peky/config.yml`
-4. Built-in `auto` layout (default)
+1. An explicit `--layout NAME` flag or layout-name shorthand.
+2. The project-local `.peky.yml` or `.peky.yaml` layout.
+3. The built-in `auto` layout.
+
+For an explicit name, a global layout from the default layouts directory or
+the global config's `layouts` map overrides a built-in layout with the same
+name. A global layout named `auto` is selected only when requested explicitly;
+it does not replace the fallback. Entries in the global `projects` list are
+used by the dashboard/workspace UI and are not matched automatically by a
+direct `start`.
 
 ---
 
@@ -341,24 +269,15 @@ Layouts are loaded in this order (first match wins):
 
 ### Prefer `grid:` for Exact Grids
 
-For predictable rows/columns (2x3, 3x4, etc.), use the top-level `grid` configuration.
+Use `grid: 2x3`, `grid: 3x3`, or another valid rectangular grid when pane
+positions should be predictable. Use ordered `panes` when split direction and
+per-pane sizes matter.
 
 ### Empty Commands
 
-Use `cmd: ""` for panes where you want a shell ready for manual commands.
+Use `cmd: ""` for a pane that should open as an interactive shell.
 
-### Log Tailing with Fallbacks
+### Review Commands
 
-Handle missing log files gracefully:
-
-```yaml
-cmd: "tail -F ${log_file} 2>/dev/null || echo 'Waiting for ${log_file}...'"
-```
-
-### Filter Noisy Logs
-
-Reduce log noise with grep:
-
-```yaml
-cmd: "tail -F ${log_file} | grep -Ev 'DEBUG|TRACE|healthcheck'"
-```
+Layout commands are executed when the session starts. Review a project-local
+`.peky.yml` before starting an untrusted repository.

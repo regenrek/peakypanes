@@ -3,47 +3,29 @@
 
 **All your terminal AI agents, just one app.**
 
-Peky puts all your AI Agents like Claude Code, Codex CLI, pi, opencode e.g. into a single app to keep things organized.
+Peky puts terminal agents such as Claude Code, Codex CLI, pi, and opencode into a single app to keep projects organized.
 
 [![homebrew](https://img.shields.io/badge/homebrew-regenrek%2Ftap%2Fpeky-2e933c?logo=homebrew)](https://github.com/regenrek/homebrew-tap)
-[![DeepWiki](https://img.shields.io/badge/DeepWiki-regenrek%2Fpeky-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==)](https://deepwiki.com/regenrek/peky)
-[![pkg.go.dev](https://pkg.go.dev/badge/github.com/regenrek/peky.svg)](https://pkg.go.dev/github.com/regenrek/peky)
-<br />
-<br />
-<img src="assets/peky_splash.png" alt="peky preview" style="max-width: 600px;">
+[![pkg.go.dev](https://pkg.go.dev/badge/github.com/regenrek/peakypanes.svg)](https://pkg.go.dev/github.com/regenrek/peakypanes)
 
 </div>
 
-## Why?
-
-Running multiple agents on different projects at the same time takes real organization and 
-a different approach to how we do agentic coding.
-
-I built peky to solve my own problems with juggling too many windows and wasting time on setup
-and rebuilding the same environment every time. It lets you build your own reusable 
-window layouts and better-organized projects.
-
 ## Features
 
-- 🧠 **AI agent orchestration** - Run Codex/Claude/agents side by side with quick replies, slash commands, and broadcast
-- 🗂️ **Multi-project dashboard** - See every project/session in one TUI without switching windows
-- 🖱️ **Mouse support** - Create, Select, resize and drag panes.
-- 🎯 **Zero config** - Just run `peky` in any directory
+- 🧠 **AI agent orchestration** - Run agents side by side with quick replies, slash commands, and broadcast
+- 🗂️ **Multi-project dashboard** - See projects and sessions in one TUI
+- 🖱️ **Mouse support** - Create, select, resize, and drag panes
+- 🎯 **Zero config** - Run `peky` in any directory
 - 🧭 **Persistent native daemon** - Sessions keep running after the UI exits
-- 📜 **Scrollback + copy mode** - Navigate output and yank from native panes
-- ⌘ **Command palette** - Quick actions, including renaming sessions/panes
-- 🧠 **Native live previews** - Full TUI support (vim/htop) with live panes
+- 📜 **Scrollback and copy mode** - Navigate output and copy from native panes
 - 📁 **Project-local config** - Commit `.peky.yml` to git for team sharing
-
-<br />
-<br />
-<img src="assets/peky_tutorial_v2.png" alt="peky tutorial" style="max-width: 100%; height: auto;" />
 
 ## Quick Start
 
 ### Install
 
-**Using homebrew**
+The supported packaged installation is Homebrew:
+
 ```bash
 brew tap regenrek/tap
 brew install regenrek/tap/peky
@@ -51,42 +33,66 @@ brew services start peky
 peky
 ```
 
+Windows users should install a GitHub release or build from source.
+
 ### Usage
 
-**Start:**
+`peky` opens the dashboard. Start a supported two-pane session and open its
+dashboard with:
+
 ```bash
-peky start
+peky start --layout split-v
 ```
 
-## Custom Configuraton
+`peky start` uses the built-in `auto` definition; see the split-layout
+limitation below.
 
-**Create project-local config (recommended for teams):**
+Create project-local configuration for a team:
+
 ```bash
 cd your-project
 peky init --local
 # Edit .peky.yml
-git add .peky.yml  # Share with team
+git add .peky.yml
 ```
 
-## Documentation
+## Built-in Layouts
 
-- [Configuration & layouts](docs/configuration.md)
-- [Layout builder guide](docs/layout-builder.md)
-- [Dashboard & keybindings](docs/dashboard.md)
-- [CLI reference](docs/cli.md)
-- [Performance tuning](docs/performance.md)
-- [Testing](docs/testing.md)
-- [Daemon & troubleshooting](docs/troubleshooting.md)
-- [Release process](RELEASE-DOCS.md)
+The embedded layouts are:
 
-## Configuration (quick look)
+| Layout | Description |
+|--------|-------------|
+| `auto` | Three-pane default definition; see the split-layout limitation below |
+| `split-v` | Two vertical panes (left/right) |
+| `split-h` | Two horizontal panes (top/bottom) |
+| `3x3` | 3x3 grid (9 panes) |
+| `4x3` | 4x3 grid (12 panes) |
 
-Define layouts in YAML, share them with your team via git, and get consistent environments everywhere. Sessions are owned by a **native daemon** so they keep running after the UI exits.
+`tauri-debug`, `fullstack`, and `go-dev` are not built-in layouts. Names such as
+`tauri-debug` may be used for custom layouts, including the example in the
+[Layout Builder Guide](docs/layout-builder.md).
 
-Project-local config lives in `.peky.yml`, and global config lives in `~/.config/peky/config.yml`.
-See the full schema, built-in layouts, and variable expansion in [docs/configuration.md](docs/configuration.md).
+The current split-tree builder supports one or two ordered panes. The embedded
+`auto` definition contains three panes and therefore cannot currently start
+successfully; use a grid layout such as `3x3` or `4x3` for more panes.
+
+List or export layouts:
+
+```bash
+peky layouts
+peky layouts export 3x3
+```
+
+`layouts export` prints a standalone layout. It can be saved directly as
+`.peky.yml`; the loader also accepts the wrapped form shown below.
+
+## Configuration
+
+Project-local configuration lives in `.peky.yml`; global configuration lives in
+`~/.config/peky/config.yml`.
 
 ```yaml
+# .peky.yml
 session: my-project
 
 layout:
@@ -98,57 +104,93 @@ layout:
       split: horizontal
 ```
 
-## Dashboard
+A project-local file may also contain a standalone layout at the top level when
+it has `panes` or `grid`; this is the form emitted by `peky layouts export`.
+The `session` value overrides the default session name, which is a sanitized
+version of the project directory name. `peky start --session NAME` takes
+precedence over it.
 
-The dashboard shows projects, sessions, live previews, and an always-visible action line.
-Default typing goes to the selected pane; click the action line for `/` slash commands, `@` file picker, and structured actions. Use `ctrl+k` to toggle `RAW` (pure terminal).
-See [docs/dashboard.md](docs/dashboard.md) for keybindings, input routing, and dashboard configuration.
+See the [configuration reference](docs/configuration.md) and [Layout Builder
+Guide](docs/layout-builder.md) for the full schema.
 
-## CLI
+## Variable Expansion
 
-See [docs/cli.md](docs/cli.md) for the full command list and examples.
+Use `${PROJECT_PATH}`, `${PROJECT_NAME}`, environment variables, and
+`${VAR:-default}` in layout commands. Nested braced expressions are not
+expanded recursively; after the braced pass, `$HOME` and a leading `~/` are
+expanded as conveniences.
 
-## Testing
+```yaml
+layout:
+  vars:
+    log_file: "/tmp/peky.log"
+  panes:
+    - cmd: "tail -f ${PROJECT_PATH}/logs/${PROJECT_NAME}.log"
+    - cmd: "tail -f ${log_file}"
+    - cmd: "${EDITOR:-vim}"
+```
 
-See [docs/testing.md](docs/testing.md) for the full test matrix and CI notes.
-For heavy concurrency/regression coverage, run `scripts/cli-stress.sh` locally.
-For profiling + benchmarks, see [docs/performance.md](docs/performance.md).
+Use built-in and environment variables directly in the command when they need
+to expand. Braced variables are supported; `$HOME` and a leading `~/` are also
+expanded.
 
-## Release
+## CLI Overview
 
-See `RELEASE-DOCS.md` for the full release checklist (tests, tag, GoReleaser, Homebrew).
+The command is `peky`. `peky` with no command opens the dashboard; `start`,
+`open`, and `o` start a session and open the dashboard. A layout name or `.`
+can be used as a start shorthand.
 
-## Windows
-Windows users should install from the GitHub release or build with Go.
+| Command | Purpose |
+|---------|---------|
+| `dashboard`, `ui` | Open the dashboard |
+| `start`, `open`, `o` | Start a session and open the dashboard |
+| `daemon [start\|stop\|restart]` | Manage the native daemon |
+| `init` | Create global or project-local configuration |
+| `layouts [export NAME]` | List or export layouts |
+| `workspace [list\|open\|close\|close-all]` | Manage projects |
+| `clone`, `c` | Clone a repository and start a session |
+| `session ...` | List and manage sessions |
+| `pane ...` | List and manage panes, input, and layout operations |
+| `relay ...` | Create and manage pane relays |
+| `events ...` | Watch or replay events |
+| `context pack` | Create a context bundle |
+| `nl [plan\|run]` | Plan or run a natural-language command |
+| `version` | Show the version |
+| `help` | Show command help |
 
+Global flags are available on every command:
+
+```text
+--json             Emit JSON output
+--timeout DURATION Override the command timeout
+--yes, -y          Skip confirmations for side-effect commands
+--version, -v      Show the version and exit
+--fresh-config     Ignore global config and saved state
+--temporary-run    Use temporary runtime and config directories
+```
+
+For command-specific arguments and flags, see the [CLI reference](docs/cli.md).
+
+## Layout Detection
+
+For `peky start` and its aliases, layout selection is evaluated in this order:
+
+1. An explicit `--layout NAME` flag or layout-name shorthand. A named global
+   layout overrides a built-in layout with the same name.
+2. The project-local `.peky.yml` or `.peky.yaml` layout.
+3. The built-in `auto` layout.
+
+Global `projects` entries are used by the dashboard/workspace UI; they are not
+matched automatically by a direct `peky start`. A global layout named `auto` is
+selected only when requested explicitly; it does not replace the fallback.
 
 ## For Teams
 
-1. Run `peky init --local` in your project
-2. Customize `.peky.yml` for your stack
-3. Commit to git
-4. Teammates install peky and run `peky` - done!
+1. Run `peky init --local` in your project.
+2. Customize `.peky.yml` for your stack.
+3. Commit it to git.
+4. Teammates install peky and run `peky start --layout split-v` (or a grid layout).
 
 ## License
 
 MIT
-
-## Credits
-
-[@pi-mono](https://github.com/badlogic/pi-mono) - peky agent is inspired by PI / [Mario Zechner's](https://x.com/badlogicgames) work. 
-(Direct pi integration would've been ideal, but 60 MB of Node for agent + sidecar isn't worth it)
-[@charm](https://github.com/charmbracelet) - peaky is using bubbletea and lipgloss framework by charm
-
-## Links
-
-- X/Twitter: [@kregenrek](https://x.com/kregenrek)
-- Bluesky: [@kevinkern.dev](https://bsky.app/profile/kevinkern.dev)
-
-## Courses
-- Learn Cursor AI: [Ultimate Cursor Course](https://www.instructa.ai/en/cursor-ai)
-- Learn to build software with AI: [AI Builder Hub](https://www.instructa.ai)
-
-## See my other projects:
-
-* [my other projects](https://github.com/regenrek) - Find other tools on my gh profile
-* [instructa](https://github.com/orgs/instructa/repositories) - Instructa Projects
