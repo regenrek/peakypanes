@@ -85,9 +85,13 @@ an example of a custom layout.
 # List all layouts
 peakypanes layouts
 
-# Export a layout to customize
+# Print a layout to customize
 peakypanes layouts export dev-3
 ```
+
+`layouts export` prints a standalone layout definition. To use it in a
+project-local `.peakypanes.yml`, place the output under the `layout:` key;
+files in the global layouts directory use the standalone output as-is.
 
 ## Configuration
 
@@ -193,8 +197,9 @@ layout:
 
 The `start`, `kill`, `init`, and `layouts` commands expose `-h` and `--help`.
 A non-flag argument in `start` is also accepted as a layout-name shortcut, for
-example `peakypanes dev-3`. Run `peakypanes <command> --help` for
-command-specific options.
+example `peakypanes dev-3`. The `init --layout` option applies only to
+`init --local` and accepts built-in layout names. Run
+`peakypanes <command> --help` for command-specific options.
 
 ## How Layout Detection Works
 

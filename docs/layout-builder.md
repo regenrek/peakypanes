@@ -40,9 +40,10 @@ layout:
           cmd: "${EDITOR:-}"
 ```
 
-`width`, `height`, and `bind_keys` are accepted in the YAML schema but are not
-currently applied when Peaky Panes creates a session. Do not rely on them to
-resize terminals or create bindings.
+`width`, `height`, `bind_keys`, `setup`, and `enabled` are accepted in the YAML
+schema but are not currently applied or evaluated when Peaky Panes creates a
+session. Do not rely on them to resize terminals, create bindings, run setup
+commands, or conditionally disable panes.
 
 ---
 
@@ -153,7 +154,8 @@ Peaky Panes applies session-scoped tmux options that don't affect your global co
 
 ### Default Options
 
-These are applied automatically to all peakypanes sessions:
+These are applied automatically when Peaky Panes creates a new session. An
+existing session is attached without applying the layout's options again:
 
 | Option | Default | Description |
 |--------|---------|-------------|
