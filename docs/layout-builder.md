@@ -27,12 +27,10 @@ layout:
   description: "Description of what this layout is for"
   
   vars:
-    # Custom variables
-    log_file: "${HOME}/logs/${PROJECT_NAME}.log"
+    # Custom literal variables
+    log_file: "/tmp/peakypanes.log"
   
   settings:
-    width: 240          # Terminal width hint
-    height: 84          # Terminal height hint
     tmux_options:       # Session-scoped tmux options
       history-limit: "50000"
   
@@ -43,6 +41,10 @@ layout:
         - title: editor
           cmd: "${EDITOR:-}"
 ```
+
+`width`, `height`, and `bind_keys` are accepted in the YAML schema but are not
+currently applied when Peaky Panes creates a session. Do not rely on them to
+resize terminals or create bindings.
 
 ---
 
@@ -156,7 +158,7 @@ These are applied automatically to all peakypanes sessions:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `remain-on-exit` | `on` | Keeps panes open after command exits/crashes |
+| `remain-on-exit` | `off` | Lets panes close normally after a command exits |
 
 ### Custom Options
 
@@ -185,33 +187,24 @@ layout:
 
 ### Key Bindings
 
-Add custom key bindings for the session:
-
-```yaml
-layout:
-  settings:
-    bind_keys:
-      - key: "S-Left"
-        action: "previous-window"
-      - key: "S-Right"
-        action: "next-window"
-```
+`bind_keys` is part of the configuration schema, but it is not currently
+applied to the tmux session. Configure bindings in tmux separately until
+runtime support is added.
 
 ---
 
 ## Variables
 
-### Built-in Variables
+### Special Variables
 
 | Variable | Description |
 |----------|-------------|
-| `${PROJECT_PATH}` | Absolute path to project directory |
-| `${PROJECT_NAME}` | Directory name |
-| `${HOME}` | User's home directory |
+| `${PROJECT_PATH}` | Absolute path to the project directory |
+| `${PROJECT_NAME}` | Project directory name |
 
 ### Environment Variables
 
-Use any environment variable with optional defaults:
+Use any environment variable, such as `${HOME}`, with an optional default:
 
 ```yaml
 panes:
@@ -223,14 +216,14 @@ panes:
 
 ### Custom Variables
 
-Define reusable variables in the `vars` section:
+Define reusable literal values in the `vars` section:
 
 ```yaml
 layout:
   vars:
-    rust_log: "${HOME}/Library/Logs/${PROJECT_NAME}/rust.log"
-    codex_log: "${HOME}/.spezi/codex/log/app-server.log"
-    
+    rust_log: "/tmp/peakypanes-rust.log"
+    codex_log: "/tmp/peakypanes-codex.log"
+
   windows:
     - name: logs
       panes:
@@ -239,6 +232,11 @@ layout:
         - title: codex
           cmd: "tail -F ${codex_log}"
 ```
+
+Expansion is single-pass. A variable's value is substituted as-is, so a value
+such as `${HOME}/logs/${PROJECT_NAME}.log` will not expand the nested
+expressions afterward. Put special or environment variables directly in the
+command when they need expansion.
 
 ---
 
@@ -315,7 +313,11 @@ layout:
           cmd: "tail -f logs/backend.log"
 ```
 
-### Tauri/Rust Development
+### Tauri/Rust Development (custom example)
+
+`tauri-debug` is an example name, not a built-in layout. Create it in a
+project-local file or a global layouts directory; it cannot be passed to
+`init --layout` unless you define it there first.
 
 ```yaml
 session: tauri-app
@@ -323,17 +325,7 @@ session: tauri-app
 layout:
   name: tauri-debug
   description: "Tauri development with codex agents"
-  
-  vars:
-    rust_log: "${HOME}/Library/Logs/${PROJECT_NAME}/rust.log"
-    codex_log: "${HOME}/.spezi/codex/log/app-server.log"
-  
-  settings:
-    width: 240
-    height: 84
-    tmux_options:
-      remain-on-exit: "on"
-  
+
   windows:
     - name: dev
       layout: tiled
@@ -343,9 +335,9 @@ layout:
         - title: bun-dev
           cmd: "bun dev:tauri"
         - title: codex-logs
-          cmd: "tail -F ${codex_log} | grep -Ev '\\bINFO\\b'"
+          cmd: "tail -F ${HOME}/.spezi/codex/log/app-server.log | grep -Ev '\\bINFO\\b'"
         - title: rust-logs
-          cmd: "tail -F ${rust_log}"
+          cmd: "tail -F ${HOME}/Library/Logs/${PROJECT_NAME}/rust.log"
 ```
 
 ### Go Development
@@ -394,12 +386,18 @@ layout:
 
 ## Configuration Precedence
 
-Layouts are loaded in this order (first match wins):
+For `start` and `open`, layout selection is evaluated in this order:
 
-1. `--layout` flag on command line
-2. `.peakypanes.yml` in project directory
-3. Matching project in `~/.config/peakypanes/config.yml`
-4. Built-in `dev-3` layout (default)
+1. `--layout` on the command line, or a positional layout-name shortcut.
+2. `.peakypanes.yml` or `.peakypanes.yaml` in the project directory.
+3. The `dev-3` default.
+
+Global layouts in `~/.config/peakypanes/layouts/` and the `layouts` section of
+`~/.config/peakypanes/config.yml` can be selected by name and override embedded
+layouts with the same name. This includes a global `dev-3` overriding the
+embedded default. Entries in the global `projects` list are for the
+project-manager TUI; they are not consulted by `start` or `open` for automatic
+layout selection.
 
 ---
 

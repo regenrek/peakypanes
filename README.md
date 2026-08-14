@@ -16,23 +16,40 @@ Define your tmux layouts in YAML, share them with your team via git, and get con
 - 📁 **Project-local config** - Commit `.peakypanes.yml` to git for team sharing
 - 🏠 **Global config** - Define layouts once, use everywhere
 - 🔄 **Variable expansion** - Use `${EDITOR}`, `${PROJECT_PATH}`, etc.
-- 🎯 **Zero config** - Just run `peakypanes` in any directory
+- 🖥️ **Project-manager TUI** - Run `peakypanes` with no command to manage projects
+- 🎯 **Zero config sessions** - Run `peakypanes start` with the built-in default
 - ⚙️ **Session-scoped tmux options** - Configure tmux per-session without affecting global config
 
 ## Quick Start
 
+### Prerequisites
+
+- [tmux](https://github.com/tmux/tmux) must be installed and available on `PATH`.
+- Go 1.23.5 or newer is required when building from source.
+
 ### Install
 
-```bash
-go install github.com/regenrek/peakypanes/cmd/peakypanes@latest
-```
+The canonical installation path is currently unresolved in this checkout: `go.mod`
+declares `github.com/kregenrek/tmuxman`, while the repository remote is
+`github.com/regenrek/peakypanes`. Confirm the published module path before using
+`go install`.
 
 ### Usage
 
-**Just run it:**
+**Open the project manager:**
 ```bash
 cd your-project
 peakypanes
+```
+
+With no command, `peakypanes` opens the interactive project-manager TUI. It does
+not immediately start the current directory's session. The TUI also requires
+tmux.
+
+**Start or attach to the current directory:**
+```bash
+peakypanes start
+peakypanes open
 ```
 
 **Use a specific layout:**
@@ -53,14 +70,16 @@ git add .peakypanes.yml  # Share with team
 
 | Layout | Description |
 |--------|-------------|
-| `simple` | Single window, one pane |
-| `split-v` | Two vertical panes (left/right) |
+| `simple` | Single window with one shell pane |
+| `dev-2` | Editor and terminal |
+| `dev-3` | Large editor pane with server and shell panes (default) |
+| `fullstack` | Editor, dev server, and logs window |
+| `go-dev` | Editor, run, tests, and a git window |
 | `split-h` | Two horizontal panes (top/bottom) |
-| `dev-2` | Editor + terminal |
-| `dev-3` | Editor + server + shell (default) |
-| `fullstack` | Editor + dev server + logs window |
-| `go-dev` | Editor + run + tests + lazygit |
-| `tauri-debug` | Complex Tauri/Rust development layout |
+| `split-v` | Two vertical panes (left/right) |
+
+`tauri-debug` is not a built-in layout. The layout-builder guide includes it as
+an example of a custom layout.
 
 ```bash
 # List all layouts
@@ -122,13 +141,16 @@ layouts:
           - title: term
             cmd: ""
 
-# Projects for quick switching
+# Projects shown in the project-manager TUI
 projects:
   - name: webapp
     session: webapp
     path: ~/projects/webapp
     layout: fullstack
 ```
+
+The `projects` list is used by the no-argument project-manager TUI. It is not
+part of automatic layout detection for `start` or `open`.
 
 ## Variable Expansion
 
@@ -141,35 +163,50 @@ Use variables in your layouts:
 | `${EDITOR}` | Your $EDITOR |
 | `${VAR:-default}` | Env var with default |
 
+Expansion is single-pass: variables inside a `vars` value are not expanded
+again after that value is substituted. Put built-in and environment variables
+in the command that uses them when they need expansion:
+
 ```yaml
 layout:
-  vars:
-    log_file: "${HOME}/logs/${PROJECT_NAME}.log"
   windows:
     - name: dev
       panes:
-        - cmd: "tail -f ${log_file}"
+        - cmd: "tail -f ${PROJECT_PATH}/logs/${PROJECT_NAME}.log"
+        - cmd: "${EDITOR:-vim}"
 ```
 
 ## Commands
 
-```bash
-peakypanes                     # Start session (auto-detect layout)
-peakypanes start               # Same as above
-peakypanes start --layout X    # Use specific layout
-peakypanes init                # Create global config
-peakypanes init --local        # Create .peakypanes.yml
-peakypanes layouts             # List available layouts
-peakypanes layouts export X    # Export layout YAML
-peakypanes version             # Show version
-```
+| Command | Aliases and arguments | Purpose |
+|---------|------------------------|---------|
+| `peakypanes` | — | Open the interactive project-manager TUI |
+| `peakypanes start` | `-l, --layout <name>`; `-s, --session <name>`; `-p, --path <dir>` | Start or attach a session |
+| `peakypanes open` | `peakypanes o` | Alias for `start` |
+| `peakypanes kill` | `peakypanes k [session-name]` | Kill a tmux session |
+| `peakypanes init` | `-l, --local`; `--layout <name>`; `-f, --force` | Create global or project-local configuration |
+| `peakypanes layouts` | `layouts export <name>` | List layouts or export YAML |
+| `peakypanes clone` | `peakypanes c <url\|user/repo>` | Clone to `~/projects/<repo>` and start a session |
+| `peakypanes version` | `-v, --version` | Show the version |
+| `peakypanes help` | `-h, --help` | Show top-level help |
+
+The `start`, `kill`, `init`, and `layouts` commands expose `-h` and `--help`.
+A non-flag argument in `start` is also accepted as a layout-name shortcut, for
+example `peakypanes dev-3`. Run `peakypanes <command> --help` for
+command-specific options.
 
 ## How Layout Detection Works
 
-1. `--layout` flag (highest priority)
-2. `.peakypanes.yml` in current directory
-3. Project entry in `~/.config/peakypanes/config.yml`
-4. Built-in `dev-3` layout (fallback)
+For `start` and `open`, layout selection is evaluated in this order:
+
+1. The `--layout` flag or a positional layout-name shortcut.
+2. `.peakypanes.yml` or `.peakypanes.yaml` in the project directory.
+3. The `dev-3` default.
+
+Global layouts from `~/.config/peakypanes/layouts/` and the `layouts` section of
+`~/.config/peakypanes/config.yml` are available by name. A global layout with a
+given name overrides the embedded layout with that name, including `dev-3`,
+when the name is selected explicitly or as the default.
 
 ## For Teams
 

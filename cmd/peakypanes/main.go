@@ -63,7 +63,7 @@ Options:
 Examples:
   peakypanes init                     # Create ~/.config/peakypanes/
   peakypanes init --local             # Create .peakypanes.yml here
-  peakypanes init --local --layout tauri-debug
+  peakypanes init --local --layout go-dev
 `
 
 const layoutsHelpText = `List and manage layouts.
@@ -96,10 +96,9 @@ Options:
   -h, --help           Show this help
 
 Layout Detection (in order):
-  1. --layout flag
-  2. .peakypanes.yml in project directory
-  3. Project entry in ~/.config/peakypanes/config.yml
-  4. Builtin 'dev-3' layout
+  1. --layout flag (or a positional layout-name shortcut)
+  2. .peakypanes.yml or .peakypanes.yaml in project directory
+  3. Default 'dev-3' layout (global layouts can override the same name)
 
 Examples:
   peakypanes start                    # Auto-detect layout
